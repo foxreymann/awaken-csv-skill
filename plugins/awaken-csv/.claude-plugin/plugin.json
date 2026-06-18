@@ -1,0 +1,12 @@
+{
+  "name": "awaken-csv",
+  "displayName": "Awaken.tax CSV Formatter",
+  "description": "Format crypto transaction or trade data into an Awaken.tax import CSV (standard, multi-asset, or futures/perpetuals).",
+  "version": "1.0.0",
+  "author": {
+    "name": "foxreymann"
+  },
+  "repository": "https://github.com/foxreymann/awaken-csv-skill",
+  "license": "MIT",
+  "keywords": ["awaken", "tax", "crypto", "csv", "accounting"]
+}

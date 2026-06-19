@@ -21,6 +21,10 @@ Awaken-importable CSV.
   - `skills/awaken-csv/references/` — format spec, label list, exchange ledger notes
   - `skills/awaken-csv/assets/` — CSV header templates
 
+## Privacy
+
+This skill runs locally inside Claude Code and collects no data. See [PRIVACY.md](PRIVACY.md).
+
 ## License
 
 MIT

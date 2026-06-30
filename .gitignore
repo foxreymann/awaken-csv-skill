@@ -1,0 +1,21 @@
+# Sensitive financial data — never commit real transaction exports
+*.csv
+!plugins/awaken-csv/skills/awaken-csv/assets/template_standard.csv
+!plugins/awaken-csv/skills/awaken-csv/assets/template_futures.csv
+!plugins/awaken-csv/skills/awaken-csv/assets/template_multi_asset.csv
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# OS / editor artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Node (in case scripts are added)
+node_modules/

@@ -3,11 +3,14 @@
 # Source of truth: i2/.claude/skills/awaken-csv. This repo is the published snapshot.
 #
 # Usage:
-#   ./sync.sh            # sync files, then show what changed
-#   SOURCE=/path ./sync.sh   # override the source skill dir
+#   SOURCE=/path/to/skill/dir ./sync.sh
 set -euo pipefail
 
-SOURCE="${SOURCE:-/home/user/code/foxreymann/i2/.claude/skills/awaken-csv}"
+if [ -z "${SOURCE:-}" ]; then
+  echo "Usage: SOURCE=/path/to/skill/dir ./sync.sh" >&2
+  echo "Set SOURCE to the awaken-csv skill directory to sync from." >&2
+  exit 1
+fi
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DEST="$HERE/plugins/awaken-csv/skills/awaken-csv"
 MANIFEST="$HERE/plugins/awaken-csv/.claude-plugin/plugin.json"

@@ -114,6 +114,37 @@ Include, in this order:
 Keep it factual and scannable (headings, short tables for the reconciliation). It should let the user
 spot a wrong assumption without opening the CSV.
 
+## Post-generation validation
+
+Run these checks on the final CSV before handing it to the user. Awaken's importer silently accepts
+bad data and mis-computes gains/losses — catching errors here prevents that.
+
+1. **Header matches template exactly.** Compare the first line byte-for-byte against the matching
+   `assets/template_*.csv`. Renamed, reordered, or missing columns cause silent column-shift errors.
+2. **No negative quantities or fees.** Scan every `Quantity`, `Amount` (standard/multi-asset), and
+   `Fee`/`Fee Amount` cell — all must be ≥ 0. The *only* column that may be negative is `P&L` in the
+   futures format. A negative quantity means the sent/received direction is wrong.
+3. **No scientific notation.** Values like `1.5e-7` silently import as zero or are misread.
+   Format all numbers as plain decimal strings.
+4. **Decimal places ≤ 8.** More than 8 decimal places get silently truncated, which can flip
+   rounding on large volumes.
+5. **Dates are UTC.** Verify the source timezone was converted. A wrong timezone shifts every tx by
+   hours, corrupting cost-basis lookups for volatile assets.
+6. **Date format matches.** Standard/multi-asset: `MM/DD/YYYY HH:MM:SS` or ISO 8601. Futures also
+   accepts `YYYY-MM-DD`. An unrecognised format silently drops the row or defaults the date.
+7. **Tag values are from the enum.** If a `Tag` cell is non-empty, confirm it's one of the exact
+   enum strings from `references/labels-and-spec.md`. A typo (e.g. `swap_coin` instead of
+   `coin_sell`) is silently ignored and Awaken falls back to auto-classification — which may be wrong.
+8. **Every trade row has both legs.** A swap/trade must have both sent and received filled. A missing
+   leg silently turns a trade into a one-sided income or disposal event, changing the tax treatment.
+9. **Fee currency is set when fee amount is non-zero** (and vice versa). A fee with no currency (or
+   currency with no amount) is silently dropped.
+10. **Conservation check** (for exchange-ledger conversions). Per-asset sum of source changes must
+    equal `received − sent − fee` (spot) plus `P&L − fee` (futures). Any imbalance means rows were
+    dropped, duplicated, or sign-flipped. See `references/exchange-ledgers.md`.
+
+If any check fails, fix the data and re-run — do not deliver a CSV with known validation failures.
+
 ## Examples
 
 **Standard — a swap of 10 USDC for 1 SOL on Solana, $0.0001 fee in SOL:**

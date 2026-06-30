@@ -12,16 +12,25 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 DEST="$HERE/plugins/awaken-csv/skills/awaken-csv"
 MANIFEST="$HERE/plugins/awaken-csv/.claude-plugin/plugin.json"
 
-[ -d "$SOURCE" ] || { echo "Source not found: $SOURCE" >&2; exit 1; }
+command -v rsync >/dev/null 2>&1 || { echo "Error: rsync is not installed" >&2; exit 1; }
+[ -d "$SOURCE" ] || { echo "Error: source not found: $SOURCE" >&2; exit 1; }
+[ -f "$MANIFEST" ] || { echo "Error: manifest not found: $MANIFEST" >&2; exit 1; }
 
 rsync -a --delete "$SOURCE/" "$DEST/"
+
+# Verify sync produced the expected skill file
+[ -f "$DEST/SKILL.md" ] || { echo "Error: sync did not produce SKILL.md in $DEST" >&2; exit 1; }
 
 echo "Synced $SOURCE -> $DEST"
 echo
 echo "Changed files:"
-git -C "$HERE" status --porcelain "$DEST" || true
+if ! git -C "$HERE" status --porcelain "$DEST"; then
+  echo "Warning: git status failed — is this a git repo?" >&2
+fi
 echo
-echo "Current version: $(grep -oE '"version"[^,]*' "$MANIFEST")"
+
+VERSION=$(grep -oE '"version"[^,]*' "$MANIFEST") || { echo "Error: could not read version from $MANIFEST" >&2; exit 1; }
+echo "Current version: $VERSION"
 echo "Next steps if anything changed:"
 echo "  1. Bump \"version\" in $MANIFEST"
 echo "  2. git add -A && git commit -m \"Sync awaken-csv to vX.Y.Z\" && git push"

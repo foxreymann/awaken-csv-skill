@@ -120,7 +120,7 @@ Used by the **standard** and **multi-asset** formats.
 
 | Column | Meaning |
 | --- | --- |
-| `Date` | `MM/DD/YYYY HH:MM:SS` in **UTC**, e.g. `09/30/2019 07:19:01` |
+| `Date` | See `validation-rules.md` → Date |
 | `Received Quantity [n]` | Amount of token received, net of fees |
 | `Received Currency [n]` | Ticker received, e.g. `SOL` |
 | `Received Fiat Amount [n]` | (Optional) USD value at time received |
@@ -137,10 +137,8 @@ The `[n]` suffix (`Received Quantity 2`, `Sent Currency 2`, …) lets one transa
 sent or received assets — needed for LP deposits/withdrawals where you send two tokens and get one
 LP token back, or vice versa.
 
-Transaction-type rules:
-- **Send / Withdrawal**: leave `Received Quantity`/`Received Currency` empty. Sent quantity excludes the transfer fee (1 ETH moved with 0.1 ETH fee → `Sent Quantity` 0.9, `Fee Amount` 0.1).
-- **Receive / Deposit**: leave `Sent Quantity`/`Sent Currency` empty. Received quantity excludes fees.
-- **Trade**: fill in both sent and received quantity + currency.
+For transaction-type leg rules (which columns to fill for send/receive/trade) and fee handling
+examples, see `validation-rules.md`.
 
 ---
 
@@ -150,11 +148,11 @@ The perpetuals/futures format is different — it models P&L, not asset legs.
 
 | Column | Meaning |
 | --- | --- |
-| `Date` | `MM/DD/YYYY HH:MM:SS` UTC (the futures template also accepts ISO `YYYY-MM-DD`) |
+| `Date` | See `validation-rules.md` → Date |
 | `Asset` | Underlying perp asset, e.g. `BTC`, `Fartcoin` |
 | `Amount` | Amount of the underlying asset |
 | `Fee` | Fee, denominated in the Payment Token |
-| `P&L` | Net P&L of the trade — **may be negative, positive, or zero** |
+| `P&L` | Net P&L of the trade — see `validation-rules.md` → No negatives |
 | `Payment Token` | Token P&L settles in — usually `USDC`/`USDT` or a fiat |
 | `ID` | (Optional) identifier for the trade |
 | `Notes` | (Optional) |
@@ -166,5 +164,4 @@ Worked example (from the docs):
 - Close 1 BTC short for +20 USDC → `Asset` BTC, `Amount` 1, `P&L` 20, `Payment Token` USDC, `Tag` close_position
 - Receive a $10 funding payment → `Asset` USDC, `Amount` 10, `P&L` 10, `Payment Token` USDC, `Tag` funding_payment
 
-**P&L is the one place negatives are allowed.** Everywhere else (standard/multi-asset quantities and
-fees), Awaken expects non-negative numbers.
+For the no-negatives rule and its P&L exception, see `validation-rules.md` → No negatives.

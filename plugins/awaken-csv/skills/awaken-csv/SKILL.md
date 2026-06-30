@@ -32,38 +32,16 @@ sign, and spot-vs-futures traps, and points to a complete worked converter at
 
 ## Rules that must hold for every row
 
-These come straight from Awaken's importer and are the usual source of silent errors:
-
-- **Date** must be in **UTC**. Awaken accepts both its documented `MM/DD/YYYY HH:MM:SS` form
-  (e.g. `09/30/2019 07:19:01`) and ISO 8601 `YYYY-MM-DDTHH:MM:SSZ` — this repo's existing ledgers
-  under `ledgers/` use the ISO form, so match that for consistency. Convert from any source
-  timezone to UTC first.
-- **No negative numbers** in quantity or fee columns. The *only* exception is the futures `P&L`
-  column, which can be negative, positive, or zero. If a source row has a negative amount, that's a
-  signal about direction (sent vs received) — encode it by which column you put it in, not with a
-  minus sign.
-- **Up to 8 decimal places.** Don't pad with trailing zeros beyond what's meaningful, and don't
-  scientific-notation. (This project stores amounts as BigInt with 8 decimals — convert to plain
-  decimal strings for the CSV; see `@libs/bigint.js` `toDS()`.)
-- **Fees are separate** from the sent amount. If 1 ETH was transferred with a 0.1 ETH network fee,
-  the row is `Sent Quantity` = 0.9, `Fee Amount` = 0.1, `Fee Currency` = ETH — not 1.0 sent.
-- **Header row must match the template exactly.** Don't rename, reorder, or drop columns.
-- Importing the same CSV twice creates duplicates — mention this if the user might re-import.
+Read `references/validation-rules.md` for the complete, authoritative set of CSV validation rules
+(date format, no-negatives, decimal precision, fee handling, header matching, re-import warning).
+That file is the single source of truth — refer to it before producing output.
 
 ## Mapping each row
 
-Decide the transaction type, then fill legs accordingly:
+Decide the transaction type, then fill legs per the table in `references/validation-rules.md`
+(section "Transaction-type leg rules"). Tag usage rules are also in that file (section "Tag column").
 
-- **Receive / deposit / income / airdrop**: leave `Sent Quantity` & `Sent Currency` empty; fill the
-  received leg (net of fees).
-- **Send / withdrawal / sell / payment**: leave `Received Quantity` & `Received Currency` empty;
-  fill the sent leg (net of transfer fee).
-- **Trade / swap**: fill both sent and received legs.
-
-The `Tag` column is optional. Set it from the enum in `references/labels-and-spec.md` **only when the
-source data makes the intent clear** (e.g. it's labeled "staking reward", "airdrop", "LP deposit").
-If intent is ambiguous, leave it empty and let Awaken auto-classify from the sent/received pattern —
-a wrong tag is worse than no tag.
+Read `references/labels-and-spec.md` for the complete tag enum and detailed per-label tax semantics.
 
 ## Workflow
 
